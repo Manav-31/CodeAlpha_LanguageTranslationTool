@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 
 from languages import LANGUAGES
+from similarity import text_similarity
 from translator import SameLanguageError, TranslationError, translate
 
 load_dotenv()
@@ -51,6 +52,33 @@ def api_translate():
     except TranslationError as exc:
         return jsonify(error=str(exc)), 502
     return jsonify(result)
+
+
+@app.post("/api/back-translate")
+def api_back_translate():
+    """Translate a translation back into the original language and score how closely it matches."""
+    payload = request.get_json(silent=True) or {}
+    original = str(payload.get("original") or "").strip()
+    translation = str(payload.get("translation") or "").strip()
+    original_lang = payload.get("original_lang")
+    translation_lang = payload.get("translation_lang")
+
+    if not original or not translation:
+        return jsonify(error="Translate something first, then check it."), 400
+    if max(len(original), len(translation)) > MAX_CHARS:
+        return jsonify(error=f"Text is too long. The limit is {MAX_CHARS} characters."), 400
+    if original_lang not in LANGUAGES or translation_lang not in LANGUAGES:
+        return jsonify(error="Choose the source language to check this translation."), 400
+    if original_lang == translation_lang:
+        return jsonify(error="Source and target languages are the same."), 400
+
+    try:
+        result = translate(translation, translation_lang, original_lang)
+    except TranslationError as exc:
+        return jsonify(error=str(exc)), 502
+    back = result["translated_text"]
+    return jsonify(back_translation=back, similarity=round(text_similarity(original, back), 2),
+                   provider=result["provider"])
 
 
 if __name__ == "__main__":

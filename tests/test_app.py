@@ -65,3 +65,47 @@ def test_translation_service_failure(client, monkeypatch):
     resp = post(client, text="Hello", source="en", target="fr")
     assert resp.status_code == 502
     assert "unavailable" in resp.get_json()["error"]
+
+
+def test_home_page_has_both_modes(client):
+    page = client.get("/").get_data(as_text=True)
+    assert 'id="tab-conversation"' in page
+    assert 'id="mic-a"' in page and 'id="mic-b"' in page
+    assert 'id="check-btn"' in page
+
+
+def check(client, **body):
+    return client.post("/api/back-translate", json=body)
+
+
+def test_back_translation_returns_text_and_match_score(client, monkeypatch):
+    def fake_translate(text, source, target):
+        assert (text, source, target) == ("नमस्ते, आप कैसे हैं?", "hi", "en")
+        return {"translated_text": "Hello, how are you?", "detected_source": None, "provider": "MyMemory"}
+
+    monkeypatch.setattr(app_module, "translate", fake_translate)
+    resp = check(client, original="Hello, how are you?", translation="नमस्ते, आप कैसे हैं?",
+                 original_lang="en", translation_lang="hi")
+    assert resp.status_code == 200
+    assert resp.get_json() == {"back_translation": "Hello, how are you?", "similarity": 1.0, "provider": "MyMemory"}
+
+
+@pytest.mark.parametrize("body, message", [
+    ({"original": "", "translation": "x", "original_lang": "en", "translation_lang": "hi"}, "Translate something first"),
+    ({"original": "hi", "translation": "x", "original_lang": "auto", "translation_lang": "hi"}, "Choose the source language"),
+    ({"original": "hi", "translation": "x", "original_lang": "en", "translation_lang": "en"}, "are the same"),
+    ({"original": "a" * 5001, "translation": "x", "original_lang": "en", "translation_lang": "hi"}, "too long"),
+])
+def test_back_translation_rejects_bad_requests(client, body, message):
+    resp = check(client, **body)
+    assert resp.status_code == 400
+    assert message in resp.get_json()["error"]
+
+
+def test_back_translation_service_failure(client, monkeypatch):
+    def unavailable(text, source, target):
+        raise TranslationError("The translation service is unavailable right now.")
+
+    monkeypatch.setattr(app_module, "translate", unavailable)
+    resp = check(client, original="Hello", translation="Bonjour", original_lang="en", translation_lang="fr")
+    assert resp.status_code == 502

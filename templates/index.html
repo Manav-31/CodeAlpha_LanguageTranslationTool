@@ -20,6 +20,12 @@
   </header>
 
   <main class="app">
+    <div class="mode-tabs" role="tablist" aria-label="Mode">
+      <button id="tab-text" class="mode-tab" type="button" role="tab" aria-selected="true" aria-controls="text-mode" data-mode="text">Text</button>
+      <button id="tab-conversation" class="mode-tab" type="button" role="tab" aria-selected="false" aria-controls="conversation-mode" data-mode="conversation">Conversation</button>
+    </div>
+
+    <div id="text-mode" role="tabpanel" aria-labelledby="tab-text">
     <section class="translator">
       <div class="lang-row">
         <select id="source-lang" aria-label="Source language">
@@ -70,11 +76,22 @@
               <button id="copy-output" class="icon-btn" type="button" title="Copy" aria-label="Copy translation">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
               </button>
+              <button id="check-btn" class="text-btn" type="button" title="Translate the result back to see how closely it matches" hidden>Check translation</button>
             </div>
             <span id="provider" class="muted"></span>
           </div>
         </div>
       </div>
+    </section>
+
+    <section id="check-panel" class="check-panel" aria-live="polite" hidden>
+      <div class="check-head">
+        <strong>Back-translation</strong>
+        <span id="check-langs" class="muted"></span>
+        <span id="check-score" class="check-score"></span>
+      </div>
+      <p id="check-text" class="check-text" dir="auto"></p>
+      <p class="check-note">Tolk translated the result back into the original language and compared the wording with what you wrote. A close match usually means the meaning came through; a low one is worth a second look, though a correct translation can also come back in different words.</p>
     </section>
 
     <div class="controls">
@@ -85,6 +102,39 @@
           <span class="spinner" aria-hidden="true"></span>
           <span class="btn-label">Translate</span>
         </button>
+      </div>
+    </div>
+    </div>
+
+    <div id="conversation-mode" role="tabpanel" aria-labelledby="tab-conversation" hidden>
+      <section class="translator conversation">
+        <div class="lang-row">
+          <select id="conv-lang-a" aria-label="First person's language"></select>
+          <button id="conv-swap" class="swap-btn" type="button" title="Swap languages" aria-label="Swap languages">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13m0 0-4-4m4 4-4 4M17 17H4m0 0 4-4m-4 4 4 4"/></svg>
+          </button>
+          <select id="conv-lang-b" aria-label="Second person's language"></select>
+        </div>
+
+        <div id="conv-log" class="conv-log" aria-live="polite">
+          <p class="conv-empty">Two people, two languages. Each person taps their button and speaks; Tolk shows what was said, translates it and reads it out in the other language.</p>
+        </div>
+
+        <div class="conv-mics">
+          <button id="mic-a" class="mic-btn" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+            <span class="mic-label">Speak</span>
+          </button>
+          <button id="mic-b" class="mic-btn" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+            <span class="mic-label">Speak</span>
+          </button>
+        </div>
+      </section>
+
+      <div class="controls">
+        <p id="conv-status" class="conv-status" role="status"></p>
+        <label class="auto-speak"><input id="auto-speak" type="checkbox" checked> Read translations aloud</label>
       </div>
     </div>
   </main>
