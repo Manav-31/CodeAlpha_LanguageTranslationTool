@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Tolk · Translate text</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@600&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1 class="wordmark"><a href="/">tolk<span>.</span></a></h1>
+      <span class="tagline">Translate text between 130 languages</span>
+    </div>
+  </header>
+
+  <main class="app">
+    <section class="translator">
+      <div class="lang-row">
+        <select id="source-lang" aria-label="Source language">
+          <option value="auto">Detect language</option>
+          {% for code, name in languages.items() %}
+          <option value="{{ code }}">{{ name }}</option>
+          {% endfor %}
+        </select>
+
+        <button id="swap-btn" class="swap-btn" type="button" title="Swap languages" aria-label="Swap languages">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13m0 0-4-4m4 4-4 4M17 17H4m0 0 4-4m-4 4 4 4"/></svg>
+        </button>
+
+        <select id="target-lang" aria-label="Target language">
+          {% for code, name in languages.items() %}
+          <option value="{{ code }}">{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="panels">
+        <div class="panel">
+          <textarea id="input-text" dir="auto" maxlength="{{ max_chars }}"
+                    placeholder="Type or paste text" aria-label="Text to translate" autofocus></textarea>
+          <div class="panel-footer">
+            <div class="actions">
+              <button id="speak-input" class="icon-btn" type="button" title="Listen" aria-label="Listen to input">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+              </button>
+              <button id="copy-input" class="icon-btn" type="button" title="Copy" aria-label="Copy input">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+              </button>
+              <button id="clear-btn" class="icon-btn" type="button" title="Clear" aria-label="Clear text">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+              </button>
+            </div>
+            <span id="char-count" class="muted">0 / {{ max_chars }}</span>
+          </div>
+        </div>
+
+        <div class="panel output-panel">
+          <div id="output-text" class="output is-empty" dir="auto" aria-live="polite">Translation</div>
+          <div class="panel-footer">
+            <div class="actions">
+              <button id="speak-output" class="icon-btn" type="button" title="Listen" aria-label="Listen to translation">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+              </button>
+              <button id="copy-output" class="icon-btn" type="button" title="Copy" aria-label="Copy translation">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+              </button>
+            </div>
+            <span id="provider" class="muted"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <p id="status" class="status" role="alert"></p>
+      <div class="submit">
+        <span class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></span>
+        <button id="translate-btn" class="primary-btn" type="button">
+          <span class="spinner" aria-hidden="true"></span>
+          <span class="btn-label">Translate</span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    window.LANGUAGES = {{ languages|tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
